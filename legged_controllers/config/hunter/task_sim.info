@@ -29,7 +29,7 @@ swing_trajectory_config
   feet_bias_x2                  -0.056
   feet_bias_y1                  0.08
   feet_bias_y2                  0.08
-  feet_bias_z                  -0.35
+  feet_bias_z                  -0.33
   
   next_stance_position_z        0.02
 }
@@ -142,7 +142,7 @@ rollout
 
 mpc
 {
-  timeHorizon                     0.8  ; [s]
+  timeHorizon                     1.2  ; [s]
   solutionTimeWindow              -1   ; maximum [s]
   coldStart                       false
 
@@ -240,17 +240,17 @@ R
 
   ;; left foot velocity relative to base: [linear(3), angular(3)] (uses the Jacobian at nominal configuration) ;;
   (12,12)   2000.0   ; x
-  (13,13)   2000.0   ; y
+  (13,13)   4000.0   ; y
   (14,14)   2000.0   ; z
   (15,15)   2000.0   ; x
-  (16,16)   2000.0   ; y
+  (16,16)   4000.0   ; y
   (17,17)   2000.0   ; z
   ;; right f2000.0 velocity relative to base: [linear(3), angular(3)] (uses the Jacobian at nominal configuration) ;;
   (18,18)   2000.0   ; x
-  (19,19)   2000.0   ; y
+  (19,19)   4000.0   ; y
   (20,20)   2000.0   ; z
   (21,21)   2000.0   ; x
-  (22,22)   2000.0   ; y
+  (22,22)   4000.0   ; y
   (23,23)   2000.0   ; z
 }
 
@@ -305,26 +305,26 @@ frictionConeTask
 
 swingLegTask
 {
-    kp                   80  
-    kd                   18   
+    kp                   20  
+    kd                   1   
 }
 
 baseAccelTask
 {
-    kp                   40
-    kd                   4
+    kp                   20
+    kd                   1
 }
 
 baseHeightTask
 {
     kp                   20
-    kd                   3
+    kd                   1
 }
 
 baseAngularTask 
 {
     kp                   20
-    kd                   3
+    kd                   1
 }
 
 weight

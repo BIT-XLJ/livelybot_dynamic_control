@@ -10,7 +10,7 @@ teleop:
         scale: 1.5
       - axis: 1
         target: linear.x
-        scale: 0.2
+        scale: 0.1
       - axis: 0
         target: linear.y
         scale: 0.0
@@ -44,10 +44,10 @@ teleop:
   load_controller:
     type: topic
     message_type: std_msgs/Float32
-    topic_name: load_controller
-    deadman_buttons: [ 9 ]  # 7 map F710
+    topic_name: load_controller               
+    deadman_buttons: [ 4 ]  # 7 map F710
     axis_mappings:
-      - button: 9   # 7  map F710
+      - button: 4   # 7  map F710
         target: data
         scale: 2
         offset: 0
@@ -56,9 +56,9 @@ teleop:
     type: topic
     message_type: std_msgs/Float32
     topic_name: emergency_stop
-    deadman_buttons: [ 3 ]
+    deadman_buttons: [ 7 ]
     axis_mappings:
-      - button: 3
+      - button: 7
         target: data
         scale: 2
         offset: 0
@@ -67,9 +67,9 @@ teleop:
     type: topic
     message_type: std_msgs/Float32
     topic_name: set_walk
-    deadman_buttons: [ 7 ]   # 5 map F710
+    deadman_buttons: [ 5 ]   # 5 map F710
     axis_mappings:
-      - button: 7 # 5 map F710
+      - button: 5 # 5 map F710
         target: data
         scale: 2
         offset: 0

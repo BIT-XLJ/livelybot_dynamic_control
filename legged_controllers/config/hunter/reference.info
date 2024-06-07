@@ -2,7 +2,7 @@ targetDisplacementVelocity          0.2;
 targetRotationVelocity              1;
 
 
-comHeight                           0.35
+comHeight                           0.33
 
 defaultJointState
 {
