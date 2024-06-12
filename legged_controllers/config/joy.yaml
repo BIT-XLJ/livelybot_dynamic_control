@@ -74,6 +74,17 @@ teleop:
         scale: 2
         offset: 0
   
+  reset_estimation:
+    type: topic
+    message_type: std_msgs/Float32
+    topic_name: reset_estimation
+    deadman_buttons: [ 0 ]
+    axis_mappings:
+      - button: 0
+        target: data
+        scale: 2
+        offset: 0  
+
   stance_switch:
     type: topic
     message_type: std_msgs/Float32
