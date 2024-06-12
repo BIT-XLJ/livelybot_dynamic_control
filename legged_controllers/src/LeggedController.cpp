@@ -563,6 +563,8 @@ void LeggedController::ModeSubscribe()
                                                                       &LeggedController::loadControllerCallback, this);
   subEmgstop_ = ros::NodeHandle().subscribe<std_msgs::Float32>("/emergency_stop", 1,
                                                                &LeggedController::EmergencyStopCallback, this);
+  subResetTarget_ = ros::NodeHandle().subscribe<std_msgs::Float32>("/reset_estimation", 1,
+                                                                  &LeggedController::ResetTargetCallback, this);                                                               
 }
 
 void LeggedController::EmergencyStopCallback(const std_msgs::Float32::ConstPtr& msg)
@@ -583,6 +585,22 @@ void LeggedController::loadControllerCallback(const std_msgs::Float32::ConstPtr&
   mpcRunning_ = true;
   ROS_INFO("Successfully load the controller");
 }
+
+void LeggedController::ResetTargetCallback(const std_msgs::Float32::ConstPtr& msg)
+{
+    // Initial state
+  currentObservation_.state.setZero(stateDim_);
+  currentObservation_.input.setZero(inputDim_);
+  currentObservation_.state.segment(6 + 6, jointDim_) = defalutJointPos_;
+  currentObservation_.mode = ModeNumber::STANCE;
+
+  TargetTrajectories target_trajectories({ currentObservation_.time }, { currentObservation_.state },
+                                         { currentObservation_.input });
+
+  mpcMrtInterface_->getReferenceManager().setTargetTrajectories(target_trajectories);
+  ROS_INFO("Reset the target");
+
+} 
 
 }  // namespace legged
 

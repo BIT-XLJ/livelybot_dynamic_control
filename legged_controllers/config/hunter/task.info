@@ -205,13 +205,13 @@ Q
   (11,11) 800.0    ; theta_base_x
  
   ;; Leg Joint Positions: [L, R] ;;
-  (12,12)  10.0     ; leg_l1_joint
-  (13,13)  10.0     ; leg_l2_joint
+  (12,12)  100.0     ; leg_l1_joint
+  (13,13)  5.0     ; leg_l2_joint
   (14,14)  10.0     ; leg_l3_joint
   (15,15)  10.0     ; leg_l4_joint
   (16,16)  10.0     ; leg_l5_joint
-  (17,17)  10.0     ; leg_r1_joint
-  (18,18)  10.0     ; leg_r2_joint
+  (17,17)  100.0     ; leg_r1_joint
+  (18,18)  5.0     ; leg_r2_joint
   (19,19)  10.0     ; leg_r3_joint
   (20,20)  10.0     ; leg_r4_joint
   (21,21)  10.0     ; leg_r5_joint
@@ -316,7 +316,7 @@ baseAccelTask
 
 baseHeightTask
 {
-    kp                   20
+    kp                   40
     kd                   1
 }
 
