@@ -153,10 +153,15 @@ void BridgeHW::write(const ros::Time& time, const ros::Duration& period)
 
   for (int i = 0; i < 10; ++i){
     // motor *m = motorsInterface->Motors[map_index_12dof[i]];
-    if(i == 3 || i == 8){
+    if(i==2 || i==7)
+    {
+      motorsInterface->fresh_cmd_dynamic_config(yksSendcmd_[i].pos_des_, yksSendcmd_[i].vel_des_,yksSendcmd_[i].ff_ - yksSendcmd_[i+1].ff_, yksSendcmd_[i].kp_, yksSendcmd_[i].kd_,map_index_12dof[i]);
+    }
+    else if(i == 3 || i == 8)
+    {
       motorsInterface->fresh_cmd_dynamic_config(yksSendcmd_[i].pos_des_ - yksSendcmd_[i - 1].pos_des_, (yksSendcmd_[i].vel_des_ - yksSendcmd_[i - 1].vel_des_), yksSendcmd_[i].ff_ , yksSendcmd_[i].kp_, yksSendcmd_[i].kd_,map_index_12dof[i]);
-
-    }else if(i==4 || i==9){
+    }
+    else if(i==4 || i==9){
       motorsInterface->fresh_cmd_dynamic_config(yksSendcmd_[i].pos_des_, yksSendcmd_[i].vel_des_, yksSendcmd_[i].ff_ *0.5, yksSendcmd_[i].kp_*0.5, yksSendcmd_[i].kd_*0.5,map_index_12dof[i]);
 
       //  m->fresh_cmd(yksSendcmd_[i].pos_des_, yksSendcmd_[i].vel_des_, std::clamp(yksSendcmd_[i].ff_ * 0,-3. , 3.), yksSendcmd_[i].kp_ , yksSendcmd_[i].kd_ );
