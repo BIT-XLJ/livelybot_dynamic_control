@@ -96,7 +96,7 @@ public:
   void write(const ros::Time& time, const ros::Duration& period) override;
   // void writedata2file(float pos,float vel,float tau,std::string path);
 private:
-  ros::Publisher cmd_pos_pub_, cmd_vel_pub_, cmd_ff_pub_;
+  ros::Publisher cmd_pos_pub_, cmd_vel_pub_, cmd_ff_pub_, read_pos_pub_, read_vel_pub_, read_ff_pub_;
   std::string cmd_path, state_path;
   bool setupJoints();
 
@@ -104,6 +104,7 @@ private:
   bool setupContactSensor(ros::NodeHandle& nh);
 
   EncosMotorData jointData_[10]{};
+  EncosMotorData test_jointData_[10]{};
   EncosImuData imuData_{};
   int powerLimit_{};
   int contactThreshold_{};
@@ -115,6 +116,7 @@ private:
   float transform_CurrentPos[12] = { 0 };
 
   const std::vector<int> directionMotor_{ -1, 1, 1, 1,  -1,  -1, 1, 1, -1, -1, 1, 1 };//65432
+  const std::vector<int> test_directionMotor_{ -1, 1, -1, 1,  1,  -1, 1, 1, -1, -1};//65432
 
   float read_baseMotor_[12] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
   float write_baseMotor_[12] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};

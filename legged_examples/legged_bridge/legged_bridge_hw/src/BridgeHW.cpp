@@ -35,22 +35,36 @@ bool BridgeHW::init(ros::NodeHandle& root_nh, ros::NodeHandle& robot_hw_nh)
   cmd_vel_pub_ = robot_hw_nh.advertise<std_msgs::Float64MultiArray>("cmd_vel", 10);
   cmd_ff_pub_ = robot_hw_nh.advertise<std_msgs::Float64MultiArray>("cmd_ff", 10);
 
+  read_pos_pub_ = robot_hw_nh.advertise<std_msgs::Float64MultiArray>("read_pos", 10);
+  read_vel_pub_ = robot_hw_nh.advertise<std_msgs::Float64MultiArray>("read_vel", 10);
+  read_ff_pub_ = robot_hw_nh.advertise<std_msgs::Float64MultiArray>("read_ff", 10);  
+
   return true;
 }
 
 
 void BridgeHW::read(const ros::Time &time, const ros::Duration &period)
 {
-
+  std_msgs::Float64MultiArray read_pos_msg, read_vel_msg, read_ff_msg;
+  read_pos_msg.data.resize(10);
+  read_vel_msg.data.resize(10);
+  read_ff_msg.data.resize(10);  
   float pos,vel,tau;
   for (int i=0; i<10; i++){
     // motor *m = motorsInterface->Motors[map_index_12dof[i]];
     // motor_back_t motor_data;
     // motor_data = *m->get_current_motor_state();
+
+    // if(i==3||i==4){
+    // jointData_[i].pos_ = 0.0;
+    // jointData_[i].vel_ = 0.0;
+    // jointData_[i].tau_ = 0.0;
+    // }
+    // else{
     motorsInterface->get_motor_state_dynamic_config(pos,vel,tau,map_index_12dof[i]);
-    jointData_[i].pos_ = pos;
-    jointData_[i].vel_ = vel;
-    jointData_[i].tau_ = tau;
+    test_jointData_[i].pos_ = pos;
+    test_jointData_[i].vel_ = vel;
+    test_jointData_[i].tau_ = tau;  //电机真实数据
     // if(i == 4 || i == 9){
     //   jointData_[i].pos_ = -pos;
     //   jointData_[i].vel_ = -vel;
@@ -58,21 +72,50 @@ void BridgeHW::read(const ros::Time &time, const ros::Duration &period)
     // }
     
   }
-
-  jointData_[3].pos_ = jointData_[3].pos_ + jointData_[2].pos_;
-  jointData_[3].vel_ = jointData_[3].vel_ + jointData_[2].vel_;
-  // jointData_[3].tau_ = jointData_[3].tau_ + jointData_[2].tau_;
-
-  jointData_[8].pos_ = jointData_[8].pos_ + jointData_[7].pos_;
-  jointData_[8].vel_ = jointData_[8].vel_ + jointData_[7].vel_;
-  // jointData_[8].tau_ = jointData_[8].tau_ + jointData_[7].tau_;
-
+  
+  
   for(int i=0;i<10;i++)
   {
-    jointData_[i].pos_ = jointData_[i].pos_ * directionMotor_[i];
-    jointData_[i].vel_ = jointData_[i].vel_ * directionMotor_[i];
-    jointData_[i].tau_ = jointData_[i].tau_ * directionMotor_[i];
+    if(i==3 || i==8)
+    {
+      jointData_[i].pos_ = test_directionMotor_[i] * test_jointData_[i].pos_ - test_directionMotor_[i-1] * test_jointData_[i-1].pos_;
+      jointData_[i].vel_ = test_directionMotor_[i] * test_jointData_[i].vel_ - test_directionMotor_[i-1] * test_jointData_[i-1].vel_;
+    }
+    else 
+    {
+      jointData_[i].pos_ = test_directionMotor_[i] * test_jointData_[i].pos_;
+      jointData_[i].vel_ = test_directionMotor_[i] * test_jointData_[i].vel_;
+    }
+
+    if(i==2 || i==7)
+    {
+      jointData_[i].tau_ = test_directionMotor_[i] * test_jointData_[i].tau_ + test_directionMotor_[i+1] * test_jointData_[i+1].tau_;
+    }
+    else 
+    {
+      jointData_[i].tau_ = test_directionMotor_[i] * test_jointData_[i].tau_;
+    }    
+    // read_pos_msg.data[i] = test_jointData_[i].pos_;
+    // read_vel_msg.data[i] = test_jointData_[i].vel_;
   }
+
+  // read_pos_pub_.publish(read_pos_msg);
+  // read_vel_pub_.publish(read_vel_msg);
+
+  // jointData_[3].pos_ = jointData_[3].pos_ + jointData_[2].pos_;
+  // jointData_[3].vel_ = jointData_[3].vel_ + jointData_[2].vel_;
+  // // jointData_[3].tau_ = jointData_[3].tau_ + jointData_[2].tau_;
+
+  // jointData_[8].pos_ = jointData_[8].pos_ + jointData_[7].pos_;
+  // jointData_[8].vel_ = jointData_[8].vel_ + jointData_[7].vel_;
+  // jointData_[8].tau_ = jointData_[8].tau_ + jointData_[7].tau_;
+  
+  // for(int i=0;i<10;i++)
+  // {
+  //   jointData_[i].pos_ = jointData_[i].pos_ * directionMotor_[i];
+  //   jointData_[i].vel_ = jointData_[i].vel_ * directionMotor_[i];
+  //   jointData_[i].tau_ = jointData_[i].tau_ * directionMotor_[i];
+  // }
 
   imuData_.ori[0] = yesenceIMU_.orientation.x;       
   imuData_.ori[1] = yesenceIMU_.orientation.y; 
@@ -95,30 +138,54 @@ void BridgeHW::read(const ros::Time &time, const ros::Duration &period)
     handle.setKp(0.);
   }
 
+
 }
 
 void BridgeHW::write(const ros::Time& time, const ros::Duration& period)
 {
   std_msgs::Float64MultiArray cmd_pos_msg, cmd_vel_msg, cmd_ff_msg;
+
   cmd_pos_msg.data.resize(10);
   cmd_vel_msg.data.resize(10);
   cmd_ff_msg.data.resize(10);
 
+
   for (int i = 0; i < 10; ++i)//as the urdf rank
   {
-    yksSendcmd_[i].pos_des_ = jointData_[i].pos_des_ * directionMotor_[i] + write_baseMotor_[i] ;
-    yksSendcmd_[i].vel_des_ = jointData_[i].vel_des_ * directionMotor_[i];
+    // yksSendcmd_[i].pos_des_ = jointData_[i].pos_des_ * test_directionMotor_[i] ;//+ write_baseMotor_[i] ;
+    // yksSendcmd_[i].vel_des_ = jointData_[i].vel_des_ * test_directionMotor_[i];
     yksSendcmd_[i].kp_ = jointData_[i].kp_;
     yksSendcmd_[i].kd_ = jointData_[i].kd_;
+    // yksSendcmd_[i].ff_ = jointData_[i].ff_ * test_directionMotor_[i] * 1; 
+    
+    if(i==3 || i==8)
+    {
+      yksSendcmd_[i].pos_des_ = test_directionMotor_[i]*(jointData_[i].pos_des_ + jointData_[i-1].pos_des_);
+      yksSendcmd_[i].vel_des_ = test_directionMotor_[i]*(jointData_[i].vel_des_ + jointData_[i-1].vel_des_);
+    }
+    else 
+    {
+      yksSendcmd_[i].pos_des_ = jointData_[i].pos_des_ * test_directionMotor_[i];//+ write_baseMotor_[i] ;
+      yksSendcmd_[i].vel_des_ = jointData_[i].vel_des_ * test_directionMotor_[i];
+    }
 
-    if(i==1 || i==6)
+    if(i==2 || i==7)
     {
-      yksSendcmd_[i].ff_ = jointData_[i].ff_ * directionMotor_[i] * 0.7;
+      yksSendcmd_[i].ff_ = test_directionMotor_[i]*(jointData_[i].ff_ - jointData_[i+1].ff_);
     }
-    else
-    {
-      yksSendcmd_[i].ff_ = jointData_[i].ff_ * directionMotor_[i] * 1;
+    else {
+      yksSendcmd_[i].ff_ = test_directionMotor_[i]*jointData_[i].ff_;
+    
     }
+
+    // if(i==1 || i==6)
+    // {
+    //   yksSendcmd_[i].ff_ = jointData_[i].ff_ * directionMotor_[i] * 0.7;
+    // }
+    // else
+    // {
+    //   yksSendcmd_[i].ff_ = jointData_[i].ff_ * directionMotor_[i] * 1;
+    // }
 
     
     
@@ -139,8 +206,7 @@ void BridgeHW::write(const ros::Time& time, const ros::Duration& period)
   }
   
 
-
-  for (int i = 0; i < 10; ++i)//as the urdf rank
+  for (int i = 0; i < 10; ++i)//as directionMotor_the urdf rank
   {
     cmd_pos_msg.data[i] = yksSendcmd_[i].pos_des_;
     cmd_vel_msg.data[i] = yksSendcmd_[i].vel_des_;
@@ -153,15 +219,15 @@ void BridgeHW::write(const ros::Time& time, const ros::Duration& period)
 
   for (int i = 0; i < 10; ++i){
     // motor *m = motorsInterface->Motors[map_index_12dof[i]];
-    if(i==2 || i==7)
-    {
-      motorsInterface->fresh_cmd_dynamic_config(yksSendcmd_[i].pos_des_, yksSendcmd_[i].vel_des_,yksSendcmd_[i].ff_ - yksSendcmd_[i+1].ff_, yksSendcmd_[i].kp_, yksSendcmd_[i].kd_,map_index_12dof[i]);
-    }
-    else if(i == 3 || i == 8)
-    {
-      motorsInterface->fresh_cmd_dynamic_config(yksSendcmd_[i].pos_des_ - yksSendcmd_[i - 1].pos_des_, (yksSendcmd_[i].vel_des_ - yksSendcmd_[i - 1].vel_des_), yksSendcmd_[i].ff_ , yksSendcmd_[i].kp_, yksSendcmd_[i].kd_,map_index_12dof[i]);
-    }
-    else if(i==4 || i==9){
+    // if(i==2 || i==7)  //大腿电机
+    // {
+    //   motorsInterface->fresh_cmd_dynamic_config(yksSendcmd_[i].pos_des_, yksSendcmd_[i].vel_des_,yksSendcmd_[i].ff_ - yksSendcmd_[i+1].ff_, yksSendcmd_[i].kp_, yksSendcmd_[i].kd_,map_index_12dof[i]);
+    // }
+    // else if(i == 3 || i == 8)
+    // {
+    //   motorsInterface->fresh_cmd_dynamic_config(yksSendcmd_[i].pos_des_ - yksSendcmd_[i - 1].pos_des_, (yksSendcmd_[i].vel_des_ - yksSendcmd_[i - 1].vel_des_), yksSendcmd_[i].ff_ , yksSendcmd_[i].kp_, yksSendcmd_[i].kd_,map_index_12dof[i]);
+    // }
+    if(i==4 || i==9){
       motorsInterface->fresh_cmd_dynamic_config(yksSendcmd_[i].pos_des_, yksSendcmd_[i].vel_des_, yksSendcmd_[i].ff_ *0.5, yksSendcmd_[i].kp_*0.5, yksSendcmd_[i].kd_*0.5,map_index_12dof[i]);
 
       //  m->fresh_cmd(yksSendcmd_[i].pos_des_, yksSendcmd_[i].vel_des_, std::clamp(yksSendcmd_[i].ff_ * 0,-3. , 3.), yksSendcmd_[i].kp_ , yksSendcmd_[i].kd_ );
