@@ -5,6 +5,8 @@
 #include <iostream>
 #include <cmath>
 #include <fstream>
+#include <cmath>
+
 namespace legged
 {
   
@@ -38,6 +40,8 @@ bool BridgeHW::init(ros::NodeHandle& root_nh, ros::NodeHandle& robot_hw_nh)
   read_pos_pub_ = robot_hw_nh.advertise<std_msgs::Float64MultiArray>("read_pos", 10);
   read_vel_pub_ = robot_hw_nh.advertise<std_msgs::Float64MultiArray>("read_vel", 10);
   read_ff_pub_ = robot_hw_nh.advertise<std_msgs::Float64MultiArray>("read_ff", 10);  
+  
+  start = true;
 
   return true;
 }
@@ -45,10 +49,10 @@ bool BridgeHW::init(ros::NodeHandle& root_nh, ros::NodeHandle& robot_hw_nh)
 
 void BridgeHW::read(const ros::Time &time, const ros::Duration &period)
 {
-  std_msgs::Float64MultiArray read_pos_msg, read_vel_msg, read_ff_msg;
-  read_pos_msg.data.resize(10);
-  read_vel_msg.data.resize(10);
-  read_ff_msg.data.resize(10);  
+  // std_msgs::Float64MultiArray read_pos_msg, read_vel_msg, read_ff_msg;
+  // read_pos_msg.data.resize(10);
+  // read_vel_msg.data.resize(10);
+  // read_ff_msg.data.resize(10);  
   float pos,vel,tau;
   for (int i=0; i<10; i++){
     // motor *m = motorsInterface->Motors[map_index_12dof[i]];
@@ -98,7 +102,9 @@ void BridgeHW::read(const ros::Time &time, const ros::Duration &period)
     // read_pos_msg.data[i] = test_jointData_[i].pos_;
     // read_vel_msg.data[i] = test_jointData_[i].vel_;
   }
-
+  
+  // std::cerr<<"右手系下大腿电机力矩："<<jointData_[2].tau_<<std::endl;
+  // std::cerr<<"右手系下小腿电机力矩："<<jointData_[3].tau_<<std::endl;
   // read_pos_pub_.publish(read_pos_msg);
   // read_vel_pub_.publish(read_vel_msg);
 
@@ -143,11 +149,23 @@ void BridgeHW::read(const ros::Time &time, const ros::Duration &period)
 
 void BridgeHW::write(const ros::Time& time, const ros::Duration& period)
 {
-  std_msgs::Float64MultiArray cmd_pos_msg, cmd_vel_msg, cmd_ff_msg;
+  // std_msgs::Float64MultiArray cmd_pos_msg, cmd_vel_msg, cmd_ff_msg;
 
-  cmd_pos_msg.data.resize(10);
-  cmd_vel_msg.data.resize(10);
-  cmd_ff_msg.data.resize(10);
+  // cmd_pos_msg.data.resize(10);
+  // cmd_vel_msg.data.resize(10);
+  // cmd_ff_msg.data.resize(10);
+  
+  // if(start == true)
+  // {
+  //   start = false;
+  //   begin = ros::Time::now();
+  // }
+
+  // ros::Time time_now = ros::Time::now();
+  
+  // double t = (time_now - begin).toSec();
+
+
 
 
   for (int i = 0; i < 10; ++i)//as the urdf rank
@@ -158,6 +176,12 @@ void BridgeHW::write(const ros::Time& time, const ros::Duration& period)
     yksSendcmd_[i].kd_ = jointData_[i].kd_;
     // yksSendcmd_[i].ff_ = jointData_[i].ff_ * test_directionMotor_[i] * 1; 
     
+    // if(i==2 || i==3)
+    // {
+    //   yksSendcmd_[i].kp_ = 0.0;
+    //   yksSendcmd_[i].kd_ = 0.0;
+    // }
+
     if(i==3 || i==8)
     {
       yksSendcmd_[i].pos_des_ = test_directionMotor_[i]*(jointData_[i].pos_des_ + jointData_[i-1].pos_des_);
@@ -171,13 +195,24 @@ void BridgeHW::write(const ros::Time& time, const ros::Duration& period)
 
     if(i==2 || i==7)
     {
-      yksSendcmd_[i].ff_ = test_directionMotor_[i]*(jointData_[i].ff_ - jointData_[i+1].ff_);
+      yksSendcmd_[i].ff_ = test_directionMotor_[i]*(jointData_[i].ff_ - jointData_[i+1].ff_) * 0.6;
+      // if(i==2)
+      // {
+      //   // yksSendcmd_[i].ff_ = test_directionMotor_[i]*(0 - 1*sin(2*t));
+      //   yksSendcmd_[i].ff_ = test_directionMotor_[i]*(0-1.5);
+      // }
     }
-    else {
-      yksSendcmd_[i].ff_ = test_directionMotor_[i]*jointData_[i].ff_;
+    else 
+    {
+      yksSendcmd_[i].ff_ = test_directionMotor_[i]*jointData_[i].ff_ * 0.6;
+      // if(i==3)
+      // {
+      //   // yksSendcmd_[i].ff_ = test_directionMotor_[i]*(1*sin(2*t));
+      //   yksSendcmd_[i].ff_ = test_directionMotor_[i]*(1.5);
+      // }
+    }
     
-    }
-
+    
     // if(i==1 || i==6)
     // {
     //   yksSendcmd_[i].ff_ = jointData_[i].ff_ * directionMotor_[i] * 0.7;
@@ -206,15 +241,15 @@ void BridgeHW::write(const ros::Time& time, const ros::Duration& period)
   }
   
 
-  for (int i = 0; i < 10; ++i)//as directionMotor_the urdf rank
-  {
-    cmd_pos_msg.data[i] = yksSendcmd_[i].pos_des_;
-    cmd_vel_msg.data[i] = yksSendcmd_[i].vel_des_;
-    cmd_ff_msg.data[i] = yksSendcmd_[i].ff_;
-  }
-  cmd_pos_pub_.publish(cmd_pos_msg);
-  cmd_vel_pub_.publish(cmd_vel_msg);
-  cmd_ff_pub_.publish(cmd_ff_msg);
+  // for (int i = 0; i < 10; ++i)//as directionMotor_the urdf rank
+  // {
+  //   cmd_pos_msg.data[i] = yksSendcmd_[i].pos_des_;
+  //   cmd_vel_msg.data[i] = yksSendcmd_[i].vel_des_;
+  //   cmd_ff_msg.data[i] = yksSendcmd_[i].ff_;
+  // }
+  // cmd_pos_pub_.publish(cmd_pos_msg);
+  // cmd_vel_pub_.publish(cmd_vel_msg);
+  // cmd_ff_pub_.publish(cmd_ff_msg);
   // std::cout<<std::endl;
 
   for (int i = 0; i < 10; ++i){

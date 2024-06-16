@@ -196,7 +196,7 @@ void LeggedController::update(const ros::Time& time, const ros::Duration& period
   const vector_t& mpc_planned_body_pos = optimizedState.segment(6, 6);
   const vector_t& mpc_planned_joint_pos = optimizedState.segment(6 + 6, jointDim_);
   const vector_t& mpc_planned_joint_vel = optimizedInput.segment(12, jointDim_);
-
+  // std::cerr<<"足底力："<<optimizedInput.segment(0,3)<<std::endl;
   // WBC
   wbcTimer_.startTimer();
   vector_t x = wbc_->update(optimizedState, optimizedInput, measuredRbdState_, plannedMode, period.toSec());

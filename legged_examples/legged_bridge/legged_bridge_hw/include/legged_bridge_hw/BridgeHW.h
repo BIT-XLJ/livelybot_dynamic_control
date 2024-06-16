@@ -94,11 +94,16 @@ public:
    * @param period Current time - last time
    */
   void write(const ros::Time& time, const ros::Duration& period) override;
+
+  bool start;
+  ros::Time begin;
   // void writedata2file(float pos,float vel,float tau,std::string path);
 private:
   ros::Publisher cmd_pos_pub_, cmd_vel_pub_, cmd_ff_pub_, read_pos_pub_, read_vel_pub_, read_ff_pub_;
   std::string cmd_path, state_path;
   bool setupJoints();
+
+
 
   bool setupImu();
   bool setupContactSensor(ros::NodeHandle& nh);
