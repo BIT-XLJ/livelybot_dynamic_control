@@ -195,21 +195,26 @@ void BridgeHW::write(const ros::Time& time, const ros::Duration& period)
 
     if(i==2 || i==7)
     {
-      yksSendcmd_[i].ff_ = test_directionMotor_[i]*(jointData_[i].ff_ - jointData_[i+1].ff_) * 0.6;
+      yksSendcmd_[i].ff_ = test_directionMotor_[i]*(jointData_[i].ff_ - jointData_[i+1].ff_) * 1;
       // if(i==2)
       // {
       //   // yksSendcmd_[i].ff_ = test_directionMotor_[i]*(0 - 1*sin(2*t));
       //   yksSendcmd_[i].ff_ = test_directionMotor_[i]*(0-1.5);
       // }
     }
-    else 
+    else if(i==1 || i==6)
     {
-      yksSendcmd_[i].ff_ = test_directionMotor_[i]*jointData_[i].ff_ * 0.6;
+
+      yksSendcmd_[i].ff_ = test_directionMotor_[i]*jointData_[i].ff_ * 1;
       // if(i==3)
       // {
       //   // yksSendcmd_[i].ff_ = test_directionMotor_[i]*(1*sin(2*t));
       //   yksSendcmd_[i].ff_ = test_directionMotor_[i]*(1.5);
       // }
+    }
+    else 
+    {
+      yksSendcmd_[i].ff_ = test_directionMotor_[i]*jointData_[i].ff_ * 1;
     }
     
     
@@ -263,7 +268,7 @@ void BridgeHW::write(const ros::Time& time, const ros::Duration& period)
     //   motorsInterface->fresh_cmd_dynamic_config(yksSendcmd_[i].pos_des_ - yksSendcmd_[i - 1].pos_des_, (yksSendcmd_[i].vel_des_ - yksSendcmd_[i - 1].vel_des_), yksSendcmd_[i].ff_ , yksSendcmd_[i].kp_, yksSendcmd_[i].kd_,map_index_12dof[i]);
     // }
     if(i==4 || i==9){
-      motorsInterface->fresh_cmd_dynamic_config(yksSendcmd_[i].pos_des_, yksSendcmd_[i].vel_des_, yksSendcmd_[i].ff_ *0.5, yksSendcmd_[i].kp_*0.5, yksSendcmd_[i].kd_*0.5,map_index_12dof[i]);
+      motorsInterface->fresh_cmd_dynamic_config(yksSendcmd_[i].pos_des_, yksSendcmd_[i].vel_des_, yksSendcmd_[i].ff_ *0.5, yksSendcmd_[i].kp_, yksSendcmd_[i].kd_,map_index_12dof[i]);
 
       //  m->fresh_cmd(yksSendcmd_[i].pos_des_, yksSendcmd_[i].vel_des_, std::clamp(yksSendcmd_[i].ff_ * 0,-3. , 3.), yksSendcmd_[i].kp_ , yksSendcmd_[i].kd_ );
     }
@@ -275,8 +280,8 @@ void BridgeHW::write(const ros::Time& time, const ros::Duration& period)
 
   }
 
-  motorsInterface->fresh_cmd_dynamic_config(-yksSendcmd_[4].pos_des_, -yksSendcmd_[4].vel_des_, -yksSendcmd_[4].ff_*0.5 , yksSendcmd_[4].kp_*0.5, yksSendcmd_[4].kd_*0.5,0);
-  motorsInterface->fresh_cmd_dynamic_config(-yksSendcmd_[9].pos_des_,-yksSendcmd_[9].vel_des_,  -yksSendcmd_[9].ff_*0.5 , yksSendcmd_[9].kp_*0.5, yksSendcmd_[9].kd_*0.5,6);
+  motorsInterface->fresh_cmd_dynamic_config(-yksSendcmd_[4].pos_des_, -yksSendcmd_[4].vel_des_, -yksSendcmd_[4].ff_*0.5 , yksSendcmd_[4].kp_, yksSendcmd_[4].kd_,0);
+  motorsInterface->fresh_cmd_dynamic_config(-yksSendcmd_[9].pos_des_,-yksSendcmd_[9].vel_des_,  -yksSendcmd_[9].ff_*0.5 , yksSendcmd_[9].kp_, yksSendcmd_[9].kd_,6);
   // motor *left_tol = motorsInterface->Motors[0];
   // motor *right_tol = motorsInterface->Motors[6];
   // left_tol->fresh_cmd(-yksSendcmd_[4].pos_des_, -yksSendcmd_[4].vel_des_, -yksSendcmd_[4].ff_ * 0, yksSendcmd_[4].kp_, yksSendcmd_[4].kd_);
